@@ -1,6 +1,6 @@
-import MessageListItem from '../components/MessageListItem';
+import TodoListItem from '../components/TodoListItem';
 import { useState } from 'react';
-import { Message, getMessages } from '../data/messages';
+import { Todo, getTodos } from '../data/todos';
 import {
   IonContent,
   IonHeader,
@@ -10,17 +10,39 @@ import {
   IonRefresherContent,
   IonTitle,
   IonToolbar,
+  IonItem,
+  IonInput,
+  IonButton,
   useIonViewWillEnter
 } from '@ionic/react';
 import './Home.css';
 
 const Home: React.FC = () => {
 
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [newTodo, setNewTodo] = useState('');
+
+  const onNewTodoChanged = (e: CustomEvent) => setNewTodo(e.detail.value!);
+
+  const onAddToListClicked = () => {
+    if (newTodo) {
+      localStorage.setItem(
+        (localStorage.length + 1).toString(), 
+        JSON.stringify({
+          todo: newTodo,
+          done: false
+        })
+      );
+      setNewTodo('');
+      return true;
+    } else {
+      return false;
+    }
+  };
 
   useIonViewWillEnter(() => {
-    const msgs = getMessages();
-    setMessages(msgs);
+    const todos = getTodos();
+    setTodos(todos);
   });
 
   const refresh = (e: CustomEvent) => {
@@ -31,9 +53,19 @@ const Home: React.FC = () => {
 
   return (
     <IonPage id="home-page">
-      <IonHeader>
+      <IonHeader className="ion-text-center ion-padding">
         <IonToolbar>
-          <IonTitle>Inbox</IonTitle>
+          <IonTitle>My To Do List</IonTitle>
+          <IonItem>
+            <IonInput value={newTodo} onIonChange={onNewTodoChanged} />
+            <IonButton 
+              expand="full" 
+              size="default" 
+              onClick={onAddToListClicked}
+            >
+              Add To List
+            </IonButton>
+          </IonItem>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
@@ -44,13 +76,13 @@ const Home: React.FC = () => {
         <IonHeader collapse="condense">
           <IonToolbar>
             <IonTitle size="large">
-              Inbox
+              My To Do List
             </IonTitle>
           </IonToolbar>
         </IonHeader>
 
         <IonList>
-          {messages.map(m => <MessageListItem key={m.id} message={m} />)}
+          {todos.map((todo, i) => <TodoListItem key={i} todo={todo} />)}
         </IonList>
       </IonContent>
     </IonPage>
